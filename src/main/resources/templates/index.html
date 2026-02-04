@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo List - Spring Boot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+        }
+        .task-form {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .task-form input, .task-form textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .task-form button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .task-form button:hover {
+            background-color: #45a049;
+        }
+        .task-list {
+            list-style: none;
+            padding: 0;
+        }
+        .task-item {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .task-item.done {
+            opacity: 0.6;
+            text-decoration: line-through;
+        }
+        .task-info h3 {
+            margin: 0 0 5px 0;
+            color: #333;
+        }
+        .task-info p {
+            margin: 0;
+            color: #666;
+        }
+        .task-actions a {
+            text-decoration: none;
+            padding: 8px 16px;
+            margin-left: 10px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .btn-complete {
+            background-color: #2196F3;
+            color: white;
+        }
+        .btn-complete:hover {
+            background-color: #0b7dda;
+        }
+        .btn-delete {
+            background-color: #f44336;
+            color: white;
+        }
+        .btn-delete:hover {
+            background-color: #da190b;
+        }
+        .empty-message {
+            text-align: center;
+            color: #999;
+            padding: 40px;
+            background: white;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+<h1>📝 Ma Todo List</h1>
+
+<!-- Formulaire pour ajouter une tâche -->
+<div class="task-form">
+    <h2>Ajouter une tâche</h2>
+    <form th:action="@{/add}" th:object="${newTask}" method="post">
+        <label>
+            <input type="text" th:field="*{title}" placeholder="Titre de la tâche" required />
+        </label>
+        <label>
+            <textarea th:field="*{description}" placeholder="Description (optionnelle)" rows="3"></textarea>
+        </label>
+        <button type="submit">➕ Ajouter</button>
+    </form>
+</div>
+
+<!-- Liste des tâches -->
+<h2>Mes tâches</h2>
+
+<!-- Si la liste est vide -->
+<div th:if="${#lists.isEmpty(tasks)}" class="empty-message">
+    Aucune tâche pour le moment. Ajoutez-en une !
+</div>
+
+<!-- Si des tâches existent -->
+<ul class="task-list" th:if="${not #lists.isEmpty(tasks)}">
+    <li th:each="task : ${tasks}"
+        th:class="${task.done} ? 'task-item done' : 'task-item'">
+
+        <div class="task-info">
+            <h3 th:text="${task.title}">Titre</h3>
+            <p th:text="${task.description}">Description</p>
+        </div>
+
+        <div class="task-actions">
+            <!-- Bouton "Marquer comme fait" (seulement si pas encore fait) -->
+            <a th:if="${!task.done}"
+               th:href="@{/complete/{id}(id=${task.id})}"
+               class="btn-complete">✓ Terminer</a>
+
+            <!-- Bouton Supprimer -->
+            <a th:href="@{/delete/{id}(id=${task.id})}"
+               class="btn-delete">🗑 Supprimer</a>
+        </div>
+    </li>
+</ul>
+
+</body>
+</html>

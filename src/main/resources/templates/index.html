@@ -1,150 +1,889 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Todo List - Spring Boot</title>
+    <title>To-do LIST - Ma journée organisée</title>
+    <link href="https://fonts.googleapis.com/css2?family=Indie+Flower&family=Satisfy&family=Patrick+Hand&family=Permanent+Marker&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 50px auto;
-            padding: 20px;
-            background-color: #f5f5f5;
+        :root {
+            --paper-cream: #FFF8E7;
+            --ink-black: #1a1a1a;
+            --tape-beige: #d4c5a9;
+            --highlight-yellow: #FFF176;
+            --highlight-pink: #FFB6C1;
+            --highlight-blue: #B3E5FC;
+            --pencil-gray: #8B8680;
+            --eraser-pink: #FFD1DC;
         }
-        h1 {
-            color: #333;
-        }
-        .task-form {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 30px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .task-form input, .task-form textarea {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+
+        * {
+            margin: 0;
+            padding: 0;
             box-sizing: border-box;
         }
-        .task-form button {
-            background-color: #4CAF50;
-            color: white;
-            padding: 12px 24px;
+
+        body {
+            font-family: 'Patrick Hand', cursive;
+            background:
+                    repeating-linear-gradient(
+                            0deg,
+                            transparent,
+                            transparent 31px,
+                            #E8DCC4 31px,
+                            #E8DCC4 32px
+                    ),
+                    linear-gradient(135deg, #f5e6d3 0%, #e8d5c4 100%);
+            min-height: 100vh;
+            padding: 0;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Effet de texture papier */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                    radial-gradient(circle at 20% 50%, transparent 0%, rgba(0,0,0,.02) 100%),
+                    radial-gradient(circle at 80% 80%, transparent 0%, rgba(0,0,0,.02) 100%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Header style journal intime */
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+            position: relative;
+        }
+
+        /* Washi tape décoratif en haut */
+        .washi-tape {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%) rotate(-2deg);
+            width: 300px;
+            height: 30px;
+            background: repeating-linear-gradient(
+                    45deg,
+                    var(--highlight-pink),
+                    var(--highlight-pink) 10px,
+                    var(--highlight-yellow) 10px,
+                    var(--highlight-yellow) 20px
+            );
+            opacity: 0.7;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-family: 'Satisfy', cursive;
+            font-size: 5rem;
+            color: var(--ink-black);
+            margin-bottom: 10px;
+            text-shadow: 3px 3px 0px rgba(255, 193, 7, 0.3);
+            transform: rotate(-1deg);
+            letter-spacing: 3px;
+        }
+
+        .header h1 .todo {
+            color: #D84315;
+        }
+
+        .header h1 .list {
+            color: #1565C0;
+            font-family: 'Permanent Marker', cursive;
+        }
+
+        .date-badge {
+            display: inline-block;
+            background: var(--highlight-yellow);
+            padding: 8px 20px;
+            border: 2px dashed var(--ink-black);
+            transform: rotate(1deg);
+            font-family: 'Indie Flower', cursive;
+            font-size: 1.1rem;
+            box-shadow: 3px 3px 0 rgba(0,0,0,0.1);
+        }
+
+        /* Stats avec style post-it collés */
+        .stats-bar {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 50px;
+            flex-wrap: wrap;
+            position: relative;
+        }
+
+        .stat-item {
+            background: var(--paper-cream);
             border: none;
-            border-radius: 4px;
+            padding: 20px 30px;
+            box-shadow:
+                    0 4px 6px rgba(0,0,0,0.1),
+                    inset 0 0 30px rgba(0,0,0,0.05);
+            transform: rotate(var(--rotate, 0deg));
+            position: relative;
+            min-width: 140px;
+        }
+
+        .stat-item:nth-child(1) {
+            --rotate: -3deg;
+            background: #FFE0B2;
+        }
+        .stat-item:nth-child(2) {
+            --rotate: 2deg;
+            background: #FFECB3;
+        }
+        .stat-item:nth-child(3) {
+            --rotate: -1deg;
+            background: #C5E1A5;
+        }
+
+        /* Effet punaise */
+        .stat-item::before {
+            content: '📌';
+            position: absolute;
+            top: -10px;
+            right: 10px;
+            font-size: 1.5rem;
+            transform: rotate(45deg);
+        }
+
+        .stat-icon {
+            font-size: 2rem;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 0.95rem;
+            color: var(--pencil-gray);
+            font-family: 'Indie Flower', cursive;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--ink-black);
+            font-family: 'Permanent Marker', cursive;
+        }
+
+        /* Layout asymétrique style scrapbook */
+        .board-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 30px;
+        }
+
+        /* Carte style page de cahier arrachée */
+        .paper-card {
+            background: var(--paper-cream);
+            border: none;
+            box-shadow:
+                    0 10px 30px rgba(0,0,0,0.15),
+                    inset 0 0 50px rgba(0,0,0,0.03);
+            position: relative;
+            padding: 0;
+            transform: rotate(var(--card-rotate, 0deg));
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .paper-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                    repeating-linear-gradient(
+                            0deg,
+                            transparent,
+                            transparent 31px,
+                            rgba(139, 134, 128, 0.1) 31px,
+                            rgba(139, 134, 128, 0.1) 32px
+                    );
+            pointer-events: none;
+        }
+
+        .paper-card:hover {
+            transform: rotate(0deg) scale(1.02);
+            box-shadow:
+                    0 15px 40px rgba(0,0,0,0.2),
+                    inset 0 0 50px rgba(0,0,0,0.03);
+        }
+
+        /* Onglet style étiquette collée */
+        .paper-tab {
+            font-family: 'Permanent Marker', cursive;
+            font-size: 1.6rem;
+            padding: 15px 35px;
+            display: inline-block;
+            position: relative;
+            z-index: 2;
+            margin-left: 20px;
+            margin-bottom: -5px;
+            clip-path: polygon(0 0, 100% 0, 95% 100%, 5% 100%);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .tab-orange {
+            background: linear-gradient(135deg, #FF7043 0%, #FF9800 100%);
+            color: white;
+        }
+
+        .tab-purple {
+            background: linear-gradient(135deg, #AB47BC 0%, #CE93D8 100%);
+            color: white;
+        }
+
+        .tab-yellow {
+            background: linear-gradient(135deg, #FDD835 0%, #FFF176 100%);
+            color: var(--ink-black);
+        }
+
+        .tab-blue {
+            background: linear-gradient(135deg, #29B6F6 0%, #81D4FA 100%);
+            color: white;
+        }
+
+        .card-content {
+            padding: 35px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Section TO DO */
+        .todo-section {
+            grid-column: 1;
+            grid-row: 1;
+            --card-rotate: -1deg;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+            color: var(--ink-black);
+            font-family: 'Indie Flower', cursive;
+            font-weight: 700;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 15px;
+            border: 3px solid var(--ink-black);
+            font-family: 'Patrick Hand', cursive;
+            font-size: 1.1rem;
+            background: white;
+            box-shadow: inset 2px 2px 5px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            border-radius: 0;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            background: #FFFDE7;
+            transform: translateY(-2px);
+            box-shadow:
+                    inset 2px 2px 5px rgba(0,0,0,0.1),
+                    0 5px 15px rgba(255, 152, 0, 0.3);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* Bouton style tampon */
+        .submit-btn {
+            background: linear-gradient(135deg, #43A047 0%, #66BB6A 100%);
+            color: white;
+            border: 4px solid var(--ink-black);
+            padding: 15px 40px;
+            font-family: 'Permanent Marker', cursive;
+            font-size: 1.6rem;
             cursor: pointer;
-            font-size: 16px;
+            box-shadow: 5px 5px 0px rgba(0,0,0,0.3);
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
         }
-        .task-form button:hover {
-            background-color: #45a049;
+
+        .submit-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.5s, height 0.5s;
         }
+
+        .submit-btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .submit-btn:hover {
+            transform: rotate(-2deg) scale(1.05);
+            box-shadow: 8px 8px 0px rgba(0,0,0,0.3);
+        }
+
+        .submit-btn:active {
+            transform: rotate(-2deg) scale(0.98);
+            box-shadow: 2px 2px 0px rgba(0,0,0,0.3);
+        }
+
+        /* Sections */
+        .priorities-section {
+            grid-column: 2;
+            grid-row: 1;
+            --card-rotate: 1.5deg;
+        }
+
+        .reminders-section {
+            grid-column: 2;
+            grid-row: 2;
+            --card-rotate: -0.5deg;
+        }
+
+        .notes-section {
+            grid-column: 1 / -1;
+            grid-row: 3;
+            --card-rotate: 0.5deg;
+        }
+
+        /* Liste des tâches */
         .task-list {
             list-style: none;
             padding: 0;
+            max-height: 450px;
+            overflow-y: auto;
+            padding-right: 10px;
         }
+
+        .task-list::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .task-list::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.05);
+            border-radius: 10px;
+        }
+
+        .task-list::-webkit-scrollbar-thumb {
+            background: var(--tape-beige);
+            border-radius: 10px;
+            border: 2px solid var(--paper-cream);
+        }
+
         .task-item {
-            background: white;
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .task-item.done {
-            opacity: 0.6;
-            text-decoration: line-through;
-        }
-        .task-info h3 {
-            margin: 0 0 5px 0;
-            color: #333;
-        }
-        .task-info p {
-            margin: 0;
-            color: #666;
-        }
-        .task-actions a {
-            text-decoration: none;
-            padding: 8px 16px;
-            margin-left: 10px;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-        .btn-complete {
-            background-color: #2196F3;
-            color: white;
-        }
-        .btn-complete:hover {
-            background-color: #0b7dda;
-        }
-        .btn-delete {
-            background-color: #f44336;
-            color: white;
-        }
-        .btn-delete:hover {
-            background-color: #da190b;
-        }
-        .empty-message {
-            text-align: center;
-            color: #999;
-            padding: 40px;
+            align-items: flex-start;
+            padding: 18px 15px;
+            margin-bottom: 12px;
             background: white;
-            border-radius: 8px;
+            border-left: 5px solid transparent;
+            box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+        }
+
+        .task-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg,
+            rgba(255, 235, 59, 0.2) 0%,
+            transparent 30%
+            );
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        .task-item:hover {
+            transform: translateX(5px) rotate(0.5deg);
+            border-left-color: #FF6F00;
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.15);
+        }
+
+        .task-item:hover::before {
+            opacity: 1;
+        }
+
+        .task-item:nth-child(odd) {
+            transform: rotate(-0.3deg);
+        }
+
+        .task-item:nth-child(even) {
+            transform: rotate(0.3deg);
+        }
+
+        /* Checkbox style dessiné à la main */
+        .custom-checkbox {
+            width: 32px;
+            height: 32px;
+            min-width: 32px;
+            border: 3px solid var(--ink-black);
+            background: white;
+            margin-right: 18px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            text-decoration: none;
+            display: block;
+            transform: rotate(-3deg);
+        }
+
+        .custom-checkbox:hover {
+            background: var(--highlight-yellow);
+            transform: rotate(0deg) scale(1.15);
+            box-shadow: 0 0 0 3px rgba(255, 235, 59, 0.3);
+        }
+
+        .task-item.done .custom-checkbox {
+            background: #66BB6A;
+            transform: rotate(5deg);
+        }
+
+        .task-item.done .custom-checkbox::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-10deg);
+            color: white;
+            font-size: 1.6rem;
+            font-weight: bold;
+            font-family: 'Permanent Marker', cursive;
+        }
+
+        .task-content {
+            flex: 1;
+        }
+
+        .task-title {
+            font-weight: 700;
+            color: var(--ink-black);
+            margin-bottom: 8px;
+            font-size: 1.2rem;
+            font-family: 'Patrick Hand', cursive;
+            line-height: 1.4;
+        }
+
+        .task-description {
+            color: var(--pencil-gray);
+            font-size: 1rem;
+            line-height: 1.6;
+            font-family: 'Indie Flower', cursive;
+        }
+
+        .task-item.done .task-title,
+        .task-item.done .task-description {
+            text-decoration: line-through;
+            opacity: 0.5;
+        }
+
+        /* Actions avec style gribouillis */
+        .task-actions {
+            display: flex;
+            gap: 10px;
+            margin-left: 15px;
+        }
+
+        .action-btn {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--ink-black);
+            background: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            text-decoration: none;
+            position: relative;
+            transform: rotate(var(--btn-rotate, 0deg));
+        }
+
+        .action-btn:nth-child(1) { --btn-rotate: -5deg; }
+        .action-btn:nth-child(2) { --btn-rotate: 3deg; }
+
+        .action-btn:hover {
+            transform: rotate(0deg) scale(1.2);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-complete {
+            background: var(--highlight-blue);
+        }
+
+        .btn-complete:hover {
+            background: #4FC3F7;
+        }
+
+        .btn-delete {
+            background: var(--eraser-pink);
+        }
+
+        .btn-delete:hover {
+            background: #FF6B9D;
+        }
+
+        /* État vide avec doodle */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--pencil-gray);
+            font-style: italic;
+            font-size: 1.2rem;
+            font-family: 'Indie Flower', cursive;
+        }
+
+        .empty-state::before {
+            content: '✏️';
+            display: block;
+            font-size: 5rem;
+            margin-bottom: 20px;
+            animation: wiggle 3s ease-in-out infinite;
+        }
+
+        @keyframes wiggle {
+            0%, 100% { transform: rotate(-5deg); }
+            50% { transform: rotate(5deg); }
+        }
+
+        /* Compteur style surligneur */
+        .task-counter {
+            font-size: 1rem;
+            color: var(--ink-black);
+            margin-bottom: 20px;
+            padding: 12px 18px;
+            background: var(--highlight-yellow);
+            border-left: 5px solid #FBC02D;
+            font-family: 'Indie Flower', cursive;
+            font-weight: 700;
+            box-shadow: 3px 3px 0 rgba(0,0,0,0.1);
+            position: relative;
+            transform: rotate(-1deg);
+        }
+
+        .task-counter::before {
+            content: '✨';
+            margin-right: 8px;
+        }
+
+        /* Footer style signature */
+        .footer {
+            text-align: center;
+            margin-top: 60px;
+            padding: 30px;
+            font-family: 'Satisfy', cursive;
+            font-size: 1.5rem;
+            color: var(--ink-black);
+            position: relative;
+        }
+
+        .footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 3px;
+            background: linear-gradient(90deg,
+            transparent 0%,
+            var(--ink-black) 50%,
+            transparent 100%
+            );
+        }
+
+        /* Decorations flottantes */
+        .doodle {
+            position: fixed;
+            font-size: 2rem;
+            opacity: 0.1;
+            animation: float 6s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .doodle:nth-child(1) { top: 10%; left: 5%; animation-delay: 0s; }
+        .doodle:nth-child(2) { top: 20%; right: 10%; animation-delay: 1s; }
+        .doodle:nth-child(3) { bottom: 15%; left: 10%; animation-delay: 2s; }
+        .doodle:nth-child(4) { bottom: 25%; right: 5%; animation-delay: 3s; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(10deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .board-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .todo-section,
+            .priorities-section,
+            .reminders-section,
+            .notes-section {
+                grid-column: 1;
+            }
+
+            .header h1 {
+                font-size: 3rem;
+            }
+
+            .stats-bar {
+                gap: 15px;
+            }
+
+            .stat-item {
+                min-width: 100px;
+                padding: 15px 20px;
+            }
+
+            .task-list {
+                max-height: 350px;
+            }
         }
     </style>
 </head>
 <body>
-<h1>📝 Ma Todo List</h1>
 
-<!-- Formulaire pour ajouter une tâche -->
-<div class="task-form">
-    <h2>Ajouter une tâche</h2>
-    <form th:action="@{/add}" th:object="${newTask}" method="post">
-        <label>
-            <input type="text" th:field="*{title}" placeholder="Titre de la tâche" required />
-        </label>
-        <label>
-            <textarea th:field="*{description}" placeholder="Description (optionnelle)" rows="3"></textarea>
-        </label>
-        <button type="submit">➕ Ajouter</button>
-    </form>
-</div>
+<!-- Doodles décoratifs -->
+<div class="doodle">⭐</div>
+<div class="doodle">💭</div>
+<div class="doodle">✏️</div>
+<div class="doodle">📝</div>
 
-<!-- Liste des tâches -->
-<h2>Mes tâches</h2>
+<div class="container">
+    <!-- Header -->
+    <div class="header">
+        <div class="washi-tape"></div>
+        <h1><span class="todo">To-do</span> <span class="list">LIST</span></h1>
+        <div class="date-badge">Aujourd'hui ✨</div>
+    </div>
 
-<!-- Si la liste est vide -->
-<div th:if="${#lists.isEmpty(tasks)}" class="empty-message">
-    Aucune tâche pour le moment. Ajoutez-en une !
-</div>
+    <!-- Stats -->
+    <div class="stats-bar">
+        <div class="stat-item">
+            <span class="stat-icon">📋</span>
+            <div class="stat-label">Total</div>
+            <div class="stat-value" th:text="${#lists.size(tasks)}">0</div>
+        </div>
+        <div class="stat-item">
+            <span class="stat-icon">⏰</span>
+            <div class="stat-label">En cours</div>
+            <div class="stat-value">
+                <th:block th:with="count=0">
+                    <th:block th:each="task : ${tasks}">
+                        <th:block th:if="${!task.done}" th:with="count=${count + 1}"></th:block>
+                    </th:block>
+                    <span th:text="${count}">0</span>
+                </th:block>
+            </div>
+        </div>
+        <div class="stat-item">
+            <span class="stat-icon">🎉</span>
+            <div class="stat-label">Terminées</div>
+            <div class="stat-value">
+                <th:block th:with="count=0">
+                    <th:block th:each="task : ${tasks}">
+                        <th:block th:if="${task.done}" th:with="count=${count + 1}"></th:block>
+                    </th:block>
+                    <span th:text="${count}">0</span>
+                </th:block>
+            </div>
+        </div>
+    </div>
 
-<!-- Si des tâches existent -->
-<ul class="task-list" th:if="${not #lists.isEmpty(tasks)}">
-    <li th:each="task : ${tasks}"
-        th:class="${task.done} ? 'task-item done' : 'task-item'">
-
-        <div class="task-info">
-            <h3 th:text="${task.title}">Titre</h3>
-            <p th:text="${task.description}">Description</p>
+    <div class="board-layout">
+        <!-- Section TO DO (Formulaire) -->
+        <div class="todo-section">
+            <div class="paper-tab tab-orange">Nouvelle tâche</div>
+            <div class="paper-card">
+                <div class="card-content">
+                    <form th:action="@{/add}" th:object="${newTask}" method="post">
+                        <div class="form-group">
+                            <label for="taskTitle">✍️ Qu'est-ce qu'on fait ?</label>
+                            <input type="text" id="taskTitle" th:field="*{title}" placeholder="Écrire ici..." required />
+                        </div>
+                        <div class="form-group">
+                            <label for="taskDescription">💬 Quelques détails ?</label>
+                            <textarea id="taskDescription" th:field="*{description}" placeholder="Notes additionnelles..." rows="4"></textarea>
+                        </div>
+                        <button type="submit" class="submit-btn">+ Ajouter la tâche</button>
+                    </form>
+                </div>
+            </div>
         </div>
 
-        <div class="task-actions">
-            <!-- Bouton "Marquer comme fait" (seulement si pas encore fait) -->
-            <a th:if="${!task.done}"
-               th:href="@{/complete/{id}(id=${task.id})}"
-               class="btn-complete">✓ Terminer</a>
+        <!-- Section PRIORITÉS -->
+        <div class="priorities-section">
+            <div class="paper-tab tab-purple">À faire</div>
+            <div class="paper-card">
+                <div class="card-content">
+                    <!-- Compteur de tâches en cours -->
+                    <th:block th:with="countPending=0">
+                        <th:block th:each="task : ${tasks}">
+                            <th:block th:if="${!task.done}" th:with="countPending=${countPending + 1}"></th:block>
+                        </th:block>
+                        <div th:if="${countPending > 0}" class="task-counter">
+                            <span th:text="${countPending}">0</span> tâche(s) en attente
+                        </div>
 
-            <!-- Bouton Supprimer -->
-            <a th:href="@{/delete/{id}(id=${task.id})}"
-               class="btn-delete">🗑 Supprimer</a>
+                        <div th:if="${countPending == 0}" class="empty-state">
+                            Rien à faire !<br>Profite de ta journée 🌸
+                        </div>
+                    </th:block>
+
+                    <ul class="task-list">
+                        <li th:each="task : ${tasks}"
+                            th:if="${!task.done}"
+                            th:class="${task.done} ? 'task-item done' : 'task-item'">
+
+                            <a th:href="@{/complete/{id}(id=${task.id})}" class="custom-checkbox"></a>
+
+                            <div class="task-content">
+                                <div class="task-title" th:text="${task.title}">Titre de la tâche</div>
+                                <div class="task-description" th:if="${task.description}" th:text="${task.description}">Description</div>
+                            </div>
+
+                            <div class="task-actions">
+                                <a th:href="@{/delete/{id}(id=${task.id})}"
+                                   class="action-btn btn-delete"
+                                   onclick="return confirm('Supprimer cette tâche ?')"
+                                   title="Supprimer">🗑️</a>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
         </div>
-    </li>
-</ul>
+
+        <!-- Section TERMINÉES -->
+        <div class="reminders-section">
+            <div class="paper-tab tab-yellow">Terminées</div>
+            <div class="paper-card">
+                <div class="card-content">
+                    <!-- Compteur de tâches terminées -->
+                    <th:block th:with="countDone=0">
+                        <th:block th:each="task : ${tasks}">
+                            <th:block th:if="${task.done}" th:with="countDone=${countDone + 1}"></th:block>
+                        </th:block>
+                        <div th:if="${countDone > 0}" class="task-counter">
+                            <span th:text="${countDone}">0</span> tâche(s) accomplies !
+                        </div>
+
+                        <div th:if="${countDone == 0}" class="empty-state">
+                            Pas encore de victoires<br>aujourd'hui 🎯
+                        </div>
+                    </th:block>
+
+                    <ul class="task-list">
+                        <li th:each="task : ${tasks}"
+                            th:if="${task.done}"
+                            th:class="${task.done} ? 'task-item done' : 'task-item'">
+
+                            <div class="custom-checkbox"></div>
+
+                            <div class="task-content">
+                                <div class="task-title" th:text="${task.title}">Titre de la tâche</div>
+                                <div class="task-description" th:if="${task.description}" th:text="${task.description}">Description</div>
+                            </div>
+
+                            <div class="task-actions">
+                                <a th:href="@{/delete/{id}(id=${task.id})}"
+                                   class="action-btn btn-delete"
+                                   onclick="return confirm('Supprimer cette tâche ?')"
+                                   title="Supprimer">🗑️</a>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section TOUTES LES TÂCHES -->
+        <div class="notes-section">
+            <div class="paper-tab tab-blue">Vue d'ensemble</div>
+            <div class="paper-card">
+                <div class="card-content">
+                    <div th:if="${#lists.isEmpty(tasks)}" class="empty-state">
+                        Ton journal est vide...<br>
+                        Commence par ajouter une tâche ! ✨
+                    </div>
+
+                    <ul class="task-list" th:if="${not #lists.isEmpty(tasks)}">
+                        <li th:each="task : ${tasks}"
+                            th:class="${task.done} ? 'task-item done' : 'task-item'">
+
+                            <a th:href="@{/complete/{id}(id=${task.id})}" class="custom-checkbox"></a>
+
+                            <div class="task-content">
+                                <div class="task-title" th:text="${task.title}">Titre de la tâche</div>
+                                <div class="task-description" th:if="${task.description}" th:text="${task.description}">Description</div>
+                            </div>
+
+                            <div class="task-actions">
+                                <a th:if="${!task.done}"
+                                   th:href="@{/complete/{id}(id=${task.id})}"
+                                   class="action-btn btn-complete"
+                                   title="Marquer comme terminée">✓</a>
+
+                                <a th:href="@{/delete/{id}(id=${task.id})}"
+                                   class="action-btn btn-delete"
+                                   onclick="return confirm('Supprimer cette tâche ?')"
+                                   title="Supprimer">🗑️</a>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        Chaque tâche accomplie est une victoire 🌟
+    </div>
+</div>
 
 </body>
 </html>
